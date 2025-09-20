@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string> 
 #include <vector>
 
@@ -13,8 +14,21 @@ class Stock {
 		}
 };
 
-void displayMarket() {
-	printf("hello");
+int displayMarket() {
+	std::fstream inputFile("market.txt");
+
+	if (!inputFile) {
+		std::cerr << "Error, file cannot load \n";
+		return 1;
+	}
+
+	std::string line;
+	while (std::getline(inputFile, line)) {
+		std::cout << line << std::endl;
+	}
+	
+	inputFile.close();
+
 }
 
 struct PortItem {
