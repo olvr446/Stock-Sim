@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <string> 
 #include <vector>
 
@@ -32,6 +33,7 @@ int displayMarket() {
 	do {
 	std::cout << "\nEnter 'E' to exit to Main Menu\n";
 	std::cin >> ex;
+	std::transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
 	} while (ex != "E");
 	std::cout << "\n";
 	return 0;
@@ -90,6 +92,7 @@ int main() {
 	int choice;
 	do {
 		std::cout << " //Welcome to Stock Sim!\\ \n";
+		std::cout << "\n";
 		std::cout << "1. View Stock Market \n";
 		std::cout << "2. Buy Stocks \n";
 		std::cout << "3. Sell Stocks \n";
