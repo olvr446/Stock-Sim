@@ -2,18 +2,19 @@
 #include <string> 
 #include <vector>
 
-struct Stock {
-	std::string stockID;
-	std::string name;
-	double price;
+class Stock {
+	private:
+		std::string stockID;
+		std::string name;
+		double price;
+	public:
+		double getPrice() {
+			return price;
+		};
 
-	double getPrice() {
-		return price;
-	};
-
-	void updatePrice() {
-		//
-	};
+		void updatePrice() {
+			//
+		};
 };
 
 struct PortItem {
@@ -35,9 +36,19 @@ class Port {
 			//
 		};
 
-		std::vector<double> getPortVal() {
-
+		std::vector <Stock> dispayPort() {
+			//
 		};
+
+		std::vector<double> getPortVal() {
+			//
+		};
+
+		Stock findStock(std::string stockID) {
+			//
+		};
+
+
 
 
 };
