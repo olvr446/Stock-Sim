@@ -15,6 +15,7 @@ class Stock {
 };
 
 int displayMarket() {
+	std::string ex;
 	std::fstream inputFile("market.txt");
 
 	if (!inputFile) {
@@ -26,8 +27,14 @@ int displayMarket() {
 	while (std::getline(inputFile, line)) {
 		std::cout << line << std::endl;
 	}
-	
+
 	inputFile.close();
+	do {
+	std::cout << "\nEnter 'E' to exit to Main Menu\n";
+	std::cin >> ex;
+	} while (ex != "E");
+	std::cout << "\n";
+	return 0;
 
 }
 
