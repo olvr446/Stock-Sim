@@ -42,7 +42,6 @@ std::vector<Stock> initialiseStocks() {
 		std::stringstream ss(line);
 		std::string stockAttr;
 		std::vector<std::string> stockDetails;
-
 		while (std::getline(ss, stockAttr, '|')) {
 			stockDetails.push_back(stockAttr);
 		}
@@ -50,7 +49,14 @@ std::vector<Stock> initialiseStocks() {
 			std::cerr << "Incorrectly formatted line, skipping to next..." << line << std::endl;
 			continue;
 		}
-		new_market.emplace_back(stockDetails[0], stockDetails[1], std::stod(stockDetails[2]));
+		double price = 0.0;
+        try {
+            price = std::stod(stockDetails[2]);
+        } catch (const std::exception& e) {
+            std::cerr << "Invalid price in line: " << line << std::endl;
+            continue;  // skip invalid price
+        }
+		new_market.emplace_back(stockDetails[0], stockDetails[1], price);
 	}
 	return new_market;
 }
@@ -83,6 +89,9 @@ int displayMarket() {
 struct PortItem {
 	std::string name;
 	int quantity;
+
+	PortItem(const std::string& n, int q) 
+		: name(n), quantity(q) {}
 };
 
 class Port {
@@ -99,8 +108,9 @@ class Port {
 				if (stock.getID() == stockID) {
 					holdings.emplace_back(stock.getName(), quantity);
 					// balance -= (stock.getPrice() * quantity);
-					std::cout << "Stock Bought";
+					std::cout << "Stock Bought /n";
 					// Add balance checks
+					return 0;
 				}
 			}
 			return 0;
@@ -132,10 +142,11 @@ int main() {
 			case 2:
 				std::string id;
 				int amount;
-				std::cout << "Enter the ID of the stock you wish to purchase";
+				std::cout << "Enter the ID of the stock you wish to purchase: ";
 				std:: cin >> id;
-				std::cout << "Enter the amount of stock you wish to purchase";
+				std::cout << "Enter the amount of stock you wish to purchase: ";
 				std::cin >> amount;	
+				acc1.buyStock(market, id, amount);
 		}
 	}
 	while (choice != 7);
