@@ -81,19 +81,6 @@ int displayMarket(vector<Stock> market) {
 	for (auto& stock : market) {
 		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
 	}
-	// fstream inputFile("market.txt");
-
-	// if (!inputFile) {
-	// 	cerr << "Error, file cannot load \n";
-	// 	return 1;
-	// }
-
-	// string line;
-	// while (getline(inputFile, line)) {
-	// 	cout << line << endl;
-	// }
-
-	// inputFile.close();
 	checkExit();
 	return 0;
 
@@ -166,7 +153,7 @@ class Port {
 			return 0;
 		}
 
-		int nextDay(vector<Stock> market) {
+		int nextDay(vector<Stock>& market) {
 			cout << "Fast forwarding to next day... \n \n";
 			for (auto& stock : market) {
 				double price = stock.getPrice();
@@ -174,9 +161,21 @@ class Port {
 				mt19937 gen(rd());
 				uniform_real_distribution<> dist(-0.05, 0.05);
 				double rnum = dist(gen);
-				stock.setPrice(stock.getPrice() * (1+rnum));
+				double new_price = stock.getPrice() * (1+rnum);
+				cout << "New Price: " << new_price << "\n";
+				stock.setPrice(new_price);
 			}
 			return 0;
+		}
+
+		void viewPort() {
+			double total;
+			for (auto& stock : holdings) {
+				Stock item = stock.stockItem;
+				cout << item.getID() << " | " << item.getName() << " | " << item.getPrice() << " | " << stock.quantity << " shares\n";
+				total += item.getPrice() * stock.quantity;
+			}
+			cout << "Total Portfolio Value: " << total;
 		}
 };
 
@@ -212,6 +211,10 @@ int main() {
 				break;
 			case 4:
 				acc1.nextDay(market);
+				break;
+
+			case 5:
+				acc1.viewPort();
 				break;
 		}
 	}
