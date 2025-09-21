@@ -29,6 +29,10 @@ class Stock {
 		double getPrice() const{
 			return price;
 		}
+
+		void setPrice(double p) {
+			price = p;
+		}
 };
 
 vector<Stock> initialiseStocks() {
@@ -64,28 +68,33 @@ vector<Stock> initialiseStocks() {
 	}
 	return new_market;
 }
-
-int displayMarket() {
+void checkExit() {
 	string ex;
-	fstream inputFile("market.txt");
-
-	if (!inputFile) {
-		cerr << "Error, file cannot load \n";
-		return 1;
-	}
-
-	string line;
-	while (getline(inputFile, line)) {
-		cout << line << endl;
-	}
-
-	inputFile.close();
 	do {
 	cout << "\nEnter 'E' to exit to Main Menu \n";
 	cin >> ex;
 	transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
 	} while (ex != "E");
 	cout << "\n";
+}
+int displayMarket(vector<Stock> market) {
+	for (auto& stock : market) {
+		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
+	}
+	// fstream inputFile("market.txt");
+
+	// if (!inputFile) {
+	// 	cerr << "Error, file cannot load \n";
+	// 	return 1;
+	// }
+
+	// string line;
+	// while (getline(inputFile, line)) {
+	// 	cout << line << endl;
+	// }
+
+	// inputFile.close();
+	checkExit();
 	return 0;
 
 }
@@ -157,9 +166,16 @@ class Port {
 			return 0;
 		}
 
-		int nextDay() {
-
-
+		int nextDay(vector<Stock> market) {
+			cout << "Fast forwarding to next day... \n \n";
+			for (auto& stock : market) {
+				double price = stock.getPrice();
+				random_device rd;
+				mt19937 gen(rd());
+				uniform_real_distribution<> dist(-0.05, 0.05);
+				double rnum = dist(gen);
+				stock.setPrice(stock.getPrice() * (1+rnum));
+			}
 			return 0;
 		}
 };
@@ -184,7 +200,7 @@ int main() {
 
 		switch(choice){
 			case 1: 
-				displayMarket();
+				displayMarket(market);
 				break;
 
 			case 2:
@@ -193,6 +209,9 @@ int main() {
 			
 			case 3:
 				acc1.sellStock(market);
+				break;
+			case 4:
+				acc1.nextDay(market);
 				break;
 		}
 	}
