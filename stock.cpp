@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 #include <string> 
 #include <vector>
@@ -10,10 +11,49 @@ class Stock {
 		std::string name;
 		double price;
 	public:
-		double getPrice() {
+		Stock (std::string id, std::string name, double price)
+			: stockID(id), name(name), price(price) {}
+
+		std::string getID() const{
+			return stockID;
+		}
+
+		std::string getName() const{
+			return name;
+		}
+	
+		double getPrice() const{
 			return price;
 		}
 };
+
+std::vector<Stock> initialiseStocks() {
+	std::fstream inputFile("market.txt");
+	std::vector<Stock> new_market;
+	
+	if (!inputFile) {
+		std::cerr << "Error, file cannot load \n";
+		return new_market;
+	}
+
+	std::string line;
+	while (std::getline(inputFile, line)) {
+		if (line.empty()) continue;
+		std::stringstream ss(line);
+		std::string stockAttr;
+		std::vector<std::string> stockDetails;
+
+		while (std::getline(ss, stockAttr, '|')) {
+			stockDetails.push_back(stockAttr);
+		}
+		if (stockDetails.size() != 3) {
+			std::cerr << "Incorrectly formatted line, skipping to next..." << line << std::endl;
+			continue;
+		}
+		new_market.emplace_back(stockDetails[0], stockDetails[1], std::stod(stockDetails[2]));
+	}
+	return new_market;
+}
 
 int displayMarket() {
 	std::string ex;
@@ -51,44 +91,26 @@ class Port {
 		std::vector <PortItem> holdings;
 
 	public:
-		void buyStock(std::string stockID, int quantity) {
-			//
-		}
-
-		void sellStock(std::string stockID, int quantity){
-			//
-		}
-
-		std::vector <Stock> dispayPort() {
-			//
-		}
-
-		std::vector<double> getPortVal() {
-			//
-		}
-
-		Stock findStock(std::string stockID) {
-			//
-		}
-
-		void depositCash(double amount) {
-			//
-		}
-
-		void withdrawCash(double amount) {
-			//
-		}
-
-		void saveFile() {
-
-		}
-
-		void loadFile() {
-
+		Port(double bal, std::vector <PortItem> hold)
+			: balance(bal), holdings(hold) {}
+		
+		int buyStock(std::vector<Stock> market, std::string stockID, int quantity) {
+			for (const auto& stock: market) {
+				if (stock.getID() == stockID) {
+					holdings.emplace_back(stock.getName(), quantity);
+					// balance -= (stock.getPrice() * quantity);
+					std::cout << "Stock Bought";
+					// Add balance checks
+				}
+			}
+			return 0;
 		}
 };
 
 int main() {
+	Port acc1(1000000, std::vector<PortItem>{});
+	std::vector<Stock> market;
+	market = initialiseStocks();
 	int choice;
 	do {
 		std::cout << " //Welcome to Stock Sim!\\ \n";
@@ -106,6 +128,14 @@ int main() {
 			case 1: 
 				displayMarket();
 				break;
+
+			case 2:
+				std::string id;
+				int amount;
+				std::cout << "Enter the ID of the stock you wish to purchase";
+				std:: cin >> id;
+				std::cout << "Enter the amount of stock you wish to purchase";
+				std::cin >> amount;	
 		}
 	}
 	while (choice != 7);
