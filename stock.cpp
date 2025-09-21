@@ -77,7 +77,7 @@ void checkExit() {
 	} while (ex != "E");
 	cout << "\n";
 }
-int displayMarket(vector<Stock> market) {
+int displayMarket(vector<Stock>& market) {
 	for (auto& stock : market) {
 		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
 	}
@@ -87,10 +87,10 @@ int displayMarket(vector<Stock> market) {
 }
 
 struct PortItem {
-	const Stock stockItem;
+	Stock* stockItem;
 	int quantity;
 
-	PortItem(Stock item, int q) 
+	PortItem(Stock* item, int q) 
 		: stockItem(item), quantity(q) {}
 };
 
@@ -103,21 +103,21 @@ class Port {
 		Port(double bal, vector <PortItem> hold)
 			: balance(bal), holdings(hold) {}
 		
-		int buyStock(vector<Stock> market) {
+		int buyStock(vector<Stock>& market) {
 			string id;
 			int quantity;
 			cout << "Enter the ID of the stock you wish to purchase: \n";
 			 cin >> id;
 			cout << "Enter the quantity of stock you wish to purchase: \n";
 			cin >> quantity;
-			for (const auto& stock:market) {
+			for (auto& stock : market) {
 				if (stock.getID() == id) { 
 					double new_balance = balance - (stock.getPrice() * quantity);
 					if (new_balance < 0) {
 						cerr << "Insufficient funds \n";
 					} else {
 						balance = new_balance;
-						holdings.emplace_back(stock, quantity);
+						holdings.emplace_back(&stock, quantity);
 						cout << "Stock Bought \n";
 						cout << "New Balance: " << balance << "\n";
 					}
@@ -128,7 +128,7 @@ class Port {
 			return 0;
 		}
 
-		int sellStock(vector<Stock> market) {
+		int sellStock(vector<Stock>& market) {
 			string id;
 			int quantity;
 			cout << "Enter the ID of stock you wish to sell \n";
@@ -136,14 +136,14 @@ class Port {
 			cout << "Enter the quantity of stock you wish to sell \n";
 			cin >> quantity;
 
-			for (auto& stock : holdings ) {
-				if ((stock.stockItem).getID() == id) {
+			for (auto& stock : holdings) {
+				if ((stock.stockItem)->getID() == id) {
 					if (quantity > stock.quantity) {
-						cerr << "Error: You own " << stock.quantity << " shares of " << stock.stockItem.getName() << "\n";
+						cerr << "Error: You own " << stock.quantity << " shares of " << stock.stockItem->getName() << "\n";
 					} else {
 						stock.quantity -= quantity;
 						cout << "Stock sold \n";
-						balance = balance + ((stock.stockItem).getPrice() * quantity);
+						balance = balance + ((stock.stockItem)->getPrice() * quantity);
 						cout << "New Balance: " << balance << "\n";
 					}
 					return 0;
@@ -152,16 +152,17 @@ class Port {
 			cerr << "Error: The stock ID " << id << " does not exist";
 			return 0;
 		}
-
-		int nextDay(vector<Stock>& market) {
-			cout << "Fast forwarding to next day... \n \n";
-			for (auto& stock : market) {
-				double price = stock.getPrice();
+		double generateFlux() {
 				random_device rd;
 				mt19937 gen(rd());
 				uniform_real_distribution<> dist(-0.05, 0.05);
 				double rnum = dist(gen);
-				double new_price = stock.getPrice() * (1+rnum);
+				return rnum;
+		}
+		int nextDay(vector<Stock>& market) {
+			cout << "Fast forwarding to next day... \n \n";
+			for (auto& stock : market) {
+				double new_price = stock.getPrice() * (1 + generateFlux());
 				cout << "New Price: " << new_price << "\n";
 				stock.setPrice(new_price);
 			}
@@ -169,13 +170,12 @@ class Port {
 		}
 
 		void viewPort() {
-			double total;
+			double total = 0.0;
 			for (auto& stock : holdings) {
-				Stock item = stock.stockItem;
-				cout << item.getID() << " | " << item.getName() << " | " << item.getPrice() << " | " << stock.quantity << " shares\n";
-				total += item.getPrice() * stock.quantity;
+				cout << (stock.stockItem)->getID() << " | " << (stock.stockItem)->getName() << " | " << (stock.stockItem)->getPrice() << " | " << stock.quantity << " shares\n";
+				total += (stock.stockItem)->getPrice() * stock.quantity;
 			}
-			cout << "Total Portfolio Value: " << total;
+			cout << "Total Portfolio Value: " << total << "\n";
 		}
 };
 
