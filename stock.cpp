@@ -125,6 +125,28 @@ class Port {
 			}
 			cout << "Total Portfolio Value: " << total << "\n";
 		}
+
+		void loadOther() {
+			fstream inputFile("portfolios.txt");
+			if (!inputFile) {
+				cerr << "Error, file cannot load \n";
+			}
+
+			string line;
+			while (getline(inputFile, line)) {
+				if (line.empty()) continue;
+				stringstream ss(line);
+				string accDetails;
+				vector<string> acc;
+				while (getline(ss, accDetails, ",")) {
+					acc.push_back(accDetails);
+				}
+				if (acc.size() != 3) {
+					cerr << "Incorrectly formatted line, skipping to next line..." << line << endl;
+					continue;
+				}
+			}
+		}
 };
 
 vector<Stock> initialiseStocks() {
@@ -146,7 +168,7 @@ vector<Stock> initialiseStocks() {
 			stockDetails.push_back(stockAttr);
 		}
 		if (stockDetails.size() != 3) {
-			cerr << "Incorrectly formatted line, skipping to next..." << line << endl;
+			cerr << "Incorrectly formatted line, skipping to next line..." << line << endl;
 			continue;
 		}
 		double price = 0.0;
@@ -215,6 +237,9 @@ int main() {
 
 			case 5:
 				acc1.viewPort();
+				break;
+			case 6:
+
 				break;
 		}
 	}
