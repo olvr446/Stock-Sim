@@ -34,58 +34,6 @@ class Stock {
 			price = p;
 		}
 };
-
-vector<Stock> initialiseStocks() {
-	fstream inputFile("market.txt");
-	vector<Stock> new_market;
-	
-	if (!inputFile) {
-		cerr << "Error, file cannot load \n";
-		return new_market;
-	}
-
-	string line;
-	while (getline(inputFile, line)) {
-		if (line.empty()) continue;
-		stringstream ss(line);
-		string stockAttr;
-		vector<string> stockDetails;
-		while (getline(ss, stockAttr, '|')) {
-			stockDetails.push_back(stockAttr);
-		}
-		if (stockDetails.size() != 3) {
-			cerr << "Incorrectly formatted line, skipping to next..." << line << endl;
-			continue;
-		}
-		double price = 0.0;
-        try {
-            price = stod(stockDetails[2]);
-        } catch (const exception& e) {
-            cerr << "Invalid price in line: " << line << endl;
-            continue;
-        }
-		new_market.emplace_back(stockDetails[0], stockDetails[1], price);
-	}
-	return new_market;
-}
-void checkExit() {
-	string ex;
-	do {
-	cout << "\nEnter 'E' to exit to Main Menu \n";
-	cin >> ex;
-	transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
-	} while (ex != "E");
-	cout << "\n";
-}
-int displayMarket(vector<Stock>& market) {
-	for (auto& stock : market) {
-		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
-	}
-	checkExit();
-	return 0;
-
-}
-
 struct PortItem {
 	Stock* stockItem;
 	int quantity;
@@ -178,6 +126,58 @@ class Port {
 			cout << "Total Portfolio Value: " << total << "\n";
 		}
 };
+
+vector<Stock> initialiseStocks() {
+	fstream inputFile("market.txt");
+	vector<Stock> new_market;
+	
+	if (!inputFile) {
+		cerr << "Error, file cannot load \n";
+		return new_market;
+	}
+
+	string line;
+	while (getline(inputFile, line)) {
+		if (line.empty()) continue;
+		stringstream ss(line);
+		string stockAttr;
+		vector<string> stockDetails;
+		while (getline(ss, stockAttr, '|')) {
+			stockDetails.push_back(stockAttr);
+		}
+		if (stockDetails.size() != 3) {
+			cerr << "Incorrectly formatted line, skipping to next..." << line << endl;
+			continue;
+		}
+		double price = 0.0;
+        try {
+            price = stod(stockDetails[2]);
+        } catch (const exception& e) {
+            cerr << "Invalid price in line: " << line << endl;
+            continue;
+        }
+		new_market.emplace_back(stockDetails[0], stockDetails[1], price);
+	}
+	return new_market;
+}
+void checkExit() {
+	string ex;
+	do {
+	cout << "\nEnter 'E' to exit to Main Menu \n";
+	cin >> ex;
+	transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
+	} while (ex != "E");
+	cout << "\n";
+}
+int displayMarket(vector<Stock>& market) {
+	for (auto& stock : market) {
+		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
+	}
+	checkExit();
+	return 0;
+
+}
+
 
 int main() {
 	cout << fixed << setprecision(2);
