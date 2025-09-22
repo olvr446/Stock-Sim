@@ -6,6 +6,7 @@
 #include <random>
 #include <string> 
 #include <vector>
+#include <cstdlib>
 
 using namespace std;
 
@@ -44,12 +45,13 @@ struct PortItem {
 
 class Port {
 	private:
+		string id;
 		double balance;
 		vector <PortItem> holdings;
 
 	public:
-		Port(double bal, vector <PortItem> hold)
-			: balance(bal), holdings(hold) {}
+		Port(string id, double bal, vector <PortItem> hold)
+			: id(id), balance(bal), holdings(hold) {}
 		
 		int buyStock(vector<Stock>& market) {
 			string id;
@@ -126,27 +128,83 @@ class Port {
 			cout << "Total Portfolio Value: " << total << "\n";
 		}
 
-		void loadOther() {
-			fstream inputFile("portfolios.txt");
-			if (!inputFile) {
-				cerr << "Error, file cannot load \n";
-			}
+		// Port loadOther(Port& current_acc) {
+		// 	fstream inputFile("portfolios.txt");
+		// 	if (!inputFile) {
+		// 		cerr << "Error, file cannot load \n";
+		// 		return current_acc;
+		// 	}
 
-			string line;
-			while (getline(inputFile, line)) {
-				if (line.empty()) continue;
-				stringstream ss(line);
-				string accDetails;
-				vector<string> acc;
-				while (getline(ss, accDetails, ",")) {
-					acc.push_back(accDetails);
+		// 	string line;
+		// 	vector <string> accIDList;
+		// 	while (getline(inputFile, line)) {
+		// 		if (line.empty()) continue;
+		// 		stringstream ss(line);
+		// 		string accDetails;
+		// 		vector<string> acc;
+		// 		while (getline(ss, accDetails, ',')) {
+		// 			acc.push_back(accDetails);
+		// 		}
+		// 		if (acc.size() != 3) {
+		// 			cerr << "Incorrectly formatted line, skipping to next line..." << line << endl;
+		// 			continue;
+		// 		}
+		// 		cout << acc[0] << " | " << acc[1] << " | " << acc[2] << "\n";
+		// 		accIDList.emplace_back(acc[0]);
+		// 	}
+		// 	cout << "\nEnter an account ID to access its portfolio: \n";
+		// 	string chosenAcc;
+		// 	cin >> chosenAcc;
+
+		// 	for (const auto& accID : accIDList) {
+		// 		if (chosenAcc == accID) {
+		// 			current_acc = chosenAcc;
+		// 			return current_acc;
+		// 		}
+		// 	}
+		// 	return current_acc;
+			
+		// }
+
+		int saveExit() {
+			bool uniqueID = false;
+			fstream openFile("portfolios.txt");
+				if (!openFile) {
+					cerr << "Error, file cannot load \n";
+					return 0;
 				}
-				if (acc.size() != 3) {
-					cerr << "Incorrectly formatted line, skipping to next line..." << line << endl;
-					continue;
-				}
+			do {
+				string newID = "";
+				cout << "Create an account ID \n";
+				cin >> newID;
+				string line;
+				while (getline(openFile, line)) {
+					if (line.empty()) continue;
+					stringstream ss(line);
+					string accDetails;
+					vector<string> acc;
+					while (getline(ss, accDetails, ',')) {
+						acc.push_back(accDetails);
+					}
+					if (acc[0] == newID) {
+						cerr << "Error: ID already exists \n";
+						uniqueID = false;
+						break;
+					} else {
+						uniqueID = true;
+					}
 			}
+		} while (uniqueID != true);
+		cout << "Saving & Exiting...";
+		vector<string> stockList;
+		for (const auto& stockItem : holdings) {
+			
+
 		}
+		openFile << id << " | " << balance << " | " << holdings. << "\n";
+		openFile.close();
+		exit(0);
+
 };
 
 vector<Stock> initialiseStocks() {
@@ -182,6 +240,7 @@ vector<Stock> initialiseStocks() {
 	}
 	return new_market;
 }
+
 void checkExit() {
 	string ex;
 	do {
@@ -191,15 +250,14 @@ void checkExit() {
 	} while (ex != "E");
 	cout << "\n";
 }
+
 int displayMarket(vector<Stock>& market) {
 	for (auto& stock : market) {
 		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
 	}
 	checkExit();
 	return 0;
-
 }
-
 
 int main() {
 	cout << fixed << setprecision(2);
@@ -238,8 +296,8 @@ int main() {
 			case 5:
 				acc1.viewPort();
 				break;
-			case 6:
-
+			case 7:
+				acc1.saveExit();
 				break;
 		}
 	}
