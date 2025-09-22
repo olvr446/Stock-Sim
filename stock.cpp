@@ -167,14 +167,18 @@ class Port {
 		// }
 
 		int saveExit() {
-			bool uniqueID = false;
-			fstream openFile("portfolios.txt");
+			bool uniqueID = true;
+			string newID = "";
+			fstream openFile("portfolios.txt", ios::in | ios::out | ios::app);
 				if (!openFile) {
 					cerr << "Error, file cannot load \n";
 					return 0;
 				}
 			do {
-				string newID = "";
+				uniqueID = true;
+				openFile.clear();
+				openFile.seekg(0, ios::beg);
+
 				cout << "Create an account ID \n";
 				cin >> newID;
 				string line;
@@ -183,32 +187,32 @@ class Port {
 					stringstream ss(line);
 					string accDetails;
 					vector<string> acc;
-					while (getline(ss, accDetails, ',')) {
+					while (getline(ss, accDetails, '|')) {
 						acc.push_back(accDetails);
 					}
 					if (acc[0] == newID) {
 						cerr << "Error: ID already exists \n";
 						uniqueID = false;
 						break;
-					} else {
-						uniqueID = true;
 					}
+				}
+			} while (uniqueID != true);
+			openFile.clear();
+			openFile.seekp(0, ios::end);
+			cout << "Saving & Exiting...";
+			id = newID;
+			string stockList = "";
+			for (const auto& stock : holdings) {
+				stockList += stock.stockItem->getName() + " ";
 			}
-		} while (uniqueID != true);
-		cout << "Saving & Exiting...";
-		vector<string> stockList;
-		for (const auto& stockItem : holdings) {
-			
-
+			openFile << id << "| " << balance << "| " << stockList << "\n";
+			openFile.close();
+			exit(0);
 		}
-		openFile << id << " | " << balance << " | " << holdings. << "\n";
-		openFile.close();
-		exit(0);
-
 };
 
 vector<Stock> initialiseStocks() {
-	fstream inputFile("market.txt");
+	ifstream inputFile("market.txt");
 	vector<Stock> new_market;
 	
 	if (!inputFile) {
@@ -261,7 +265,7 @@ int displayMarket(vector<Stock>& market) {
 
 int main() {
 	cout << fixed << setprecision(2);
-	Port acc1(10000000.0, vector<PortItem>{});
+	Port acc1("", 10000000.0, vector<PortItem>{});
 	vector<Stock> market;
 	market = initialiseStocks();
 	int choice;
@@ -302,6 +306,5 @@ int main() {
 		}
 	}
 	while (choice != 7);
-
 	return 0;
 }
