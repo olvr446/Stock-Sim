@@ -52,6 +52,14 @@ class Port {
 	public:
 		Port(string id, double bal, vector <PortItem> hold)
 			: id(id), balance(bal), holdings(hold) {}
+
+		int displayMarket(vector<Stock>& market) {
+			for (auto& stock : market) {
+				cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
+			}
+			checkExit();
+			return 0;
+		}
 		
 		int buyStock(vector<Stock>& market) {
 			string id;
@@ -128,48 +136,10 @@ class Port {
 			cout << "Total Portfolio Value: " << total << "\n";
 		}
 
-		// Port loadOther(Port& current_acc) {
-		// 	fstream inputFile("portfolios.txt");
-		// 	if (!inputFile) {
-		// 		cerr << "Error, file cannot load \n";
-		// 		return current_acc;
-		// 	}
-
-		// 	string line;
-		// 	vector <string> accIDList;
-		// 	while (getline(inputFile, line)) {
-		// 		if (line.empty()) continue;
-		// 		stringstream ss(line);
-		// 		string accDetails;
-		// 		vector<string> acc;
-		// 		while (getline(ss, accDetails, ',')) {
-		// 			acc.push_back(accDetails);
-		// 		}
-		// 		if (acc.size() != 3) {
-		// 			cerr << "Incorrectly formatted line, skipping to next line..." << line << endl;
-		// 			continue;
-		// 		}
-		// 		cout << acc[0] << " | " << acc[1] << " | " << acc[2] << "\n";
-		// 		accIDList.emplace_back(acc[0]);
-		// 	}
-		// 	cout << "\nEnter an account ID to access its portfolio: \n";
-		// 	string chosenAcc;
-		// 	cin >> chosenAcc;
-
-		// 	for (const auto& accID : accIDList) {
-		// 		if (chosenAcc == accID) {
-		// 			current_acc = chosenAcc;
-		// 			return current_acc;
-		// 		}
-		// 	}
-		// 	return current_acc;
-			
-		// }
-
 		int saveExit() {
 			bool uniqueID = true;
 			string newID = "";
-			fstream openFile("portfolios.txt", ios::in | ios::out | ios::app);
+			fstream openFile("portfolios.txt");
 				if (!openFile) {
 					cerr << "Error, file cannot load \n";
 					return 0;
@@ -245,6 +215,11 @@ vector<Stock> initialiseStocks() {
 	return new_market;
 }
 
+void loadAccounts(){
+	ifstream portFile("portfolios.txt");
+
+}
+
 void checkExit() {
 	string ex;
 	do {
@@ -255,17 +230,44 @@ void checkExit() {
 	cout << "\n";
 }
 
-int displayMarket(vector<Stock>& market) {
-	for (auto& stock : market) {
-		cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
-	}
-	checkExit();
-	return 0;
+bool emptyFile(ifstream& iFile) {
+	return iFile.peek() == fstream::traits_type::eof();
 }
 
 int main() {
 	cout << fixed << setprecision(2);
-	Port acc1("", 10000000.0, vector<PortItem>{});
+	Port acc("", 0.0, vector<PortItem> {});
+
+	ifstream portFile("portfolio.txt");
+	portFile.seekg(0, ios::beg);
+	if (emptyFile(portFile) == true) {
+		cout << "Creating new account... \n \n";
+		acc =  Port("", 10000000.0, vector<PortItem>{});
+	} else {
+		int newOrLoad;
+		bool accLoaded = false;
+		do {
+			cout << "Select an Option: \n";
+			cout << "1. Create New Account \n";
+			cout << "2. Load An Existing Account";
+			cin >> newOrLoad;
+
+			switch (newOrLoad) {
+				case 1: {
+					cout << "Creating new account... \n \n";
+					acc = Port ("", 10000000.0, vector<PortItem>{});
+					accLoaded = true;
+					break;
+				}
+
+				case 2:
+					loadAccounts();
+					accLoaded = true;
+					break;
+			}
+		} while (accLoaded == false);
+	}
+
 	vector<Stock> market;
 	market = initialiseStocks();
 	int choice;
@@ -277,34 +279,34 @@ int main() {
 		cout << "3. Sell Stocks \n";
 		cout << "4. Update Prices (Next Day) \n";
 		cout << "5. View Portfolio \n";
-		cout << "6. Load Portfolio \n";
-		cout << "7. Save & Exit \n";
+		cout << "6. Save & Exit \n";
 		cin >> choice;
 
 		switch(choice){
 			case 1: 
-				displayMarket(market);
+				acc.displayMarket(market);
 				break;
 
 			case 2:
-				acc1.buyStock(market);
+				acc.buyStock(market);
 				break;
 			
 			case 3:
-				acc1.sellStock(market);
+				acc.sellStock(market);
 				break;
 			case 4:
-				acc1.nextDay(market);
+				acc.nextDay(market);
 				break;
 
 			case 5:
-				acc1.viewPort();
+				acc.viewPort();
 				break;
-			case 7:
-				acc1.saveExit();
+
+			case 6:
+				acc.saveExit();
 				break;
 		}
 	}
-	while (choice != 7);
+	while (choice != 6);
 	return 0;
 }
