@@ -49,6 +49,24 @@ class Port {
 		double balance;
 		vector <PortItem> holdings;
 
+		void checkExit() {
+			string ex;
+			do {
+				cout << "\nEnter 'E' to exit to Main Menu \n";
+				cin >> ex;
+				transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
+			} while (ex != "E");
+			cout << "\n";
+		}
+
+		double generateFlux() {
+			random_device rd;
+			mt19937 gen(rd());
+			uniform_real_distribution<> dist(-0.05, 0.05);
+			double rnum = dist(gen);
+			return rnum;
+		}
+
 	public:
 		Port(string id, double bal, vector <PortItem> hold)
 			: id(id), balance(bal), holdings(hold) {}
@@ -110,13 +128,7 @@ class Port {
 			cerr << "Error: The stock ID " << id << " does not exist";
 			return 0;
 		}
-		double generateFlux() {
-				random_device rd;
-				mt19937 gen(rd());
-				uniform_real_distribution<> dist(-0.05, 0.05);
-				double rnum = dist(gen);
-				return rnum;
-		}
+
 		int nextDay(vector<Stock>& market) {
 			cout << "Fast forwarding to next day... \n \n";
 			for (auto& stock : market) {
@@ -212,6 +224,7 @@ vector<Stock> initialiseStocks() {
         }
 		new_market.emplace_back(stockDetails[0], stockDetails[1], price);
 	}
+	inputFile.close();
 	return new_market;
 }
 
@@ -267,6 +280,7 @@ int main() {
 			}
 		} while (accLoaded == false);
 	}
+	portFile.close();
 
 	vector<Stock> market;
 	market = initialiseStocks();
