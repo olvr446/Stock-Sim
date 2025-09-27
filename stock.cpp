@@ -228,8 +228,46 @@ vector<Stock> initialiseStocks() {
 	return new_market;
 }
 
+vector<string> getAllAccounts(ifstream& file, vector<string>& accList) {
+	file.clear();
+	file.seekg(0, ios::beg);
+	string line;
+	while (getline(file, line)){
+		if (line.empty()) continue;
+		stringstream ss(line);
+		string account;
+		if (getline(ss, account, '|')) {
+			if (!account.empty()) continue;
+			accList.emplace_back(account);
+		}
+	}
+	return accList;
+}
+
 void loadAccounts(){
+	bool validUsername = false;
 	ifstream portFile("portfolios.txt");
+	string line;
+	while (getline(portFile, line)) {
+		if (line.empty()) continue;
+		cout << line << endl;
+	}
+	string acc = "";
+	do {
+		cout << "Enter the username of the account you wish to load: \n";
+		cin >> acc;
+		vector<string> accountList;
+		getAllAccounts(portFile, accountList);
+		if (find(accountList.begin(), accountList.end(), acc) != accountList.end()) {
+			validUsername = true;
+		} else {
+			cout << "This username does not exist yet, please try again. \n";
+		}
+	} while (!validUsername);
+	
+
+
+
 
 }
 
