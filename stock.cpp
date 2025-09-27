@@ -68,6 +68,7 @@ class Port {
 		}
 
 	public:
+		Port() : id(""), balance(0.0), holdings({}) {}
 		Port(string id, double bal, vector <PortItem> hold)
 			: id(id), balance(bal), holdings(hold) {}
 
@@ -185,9 +186,9 @@ class Port {
 			id = newID;
 			string stockList = "";
 			for (const auto& stock : holdings) {
-				stockList += stock.stockItem->getName() + " ";
+				stockList += stock.stockItem->getID() + ":" + to_string(stock.quantity) + ",";
 			}
-			openFile << id << "| " << balance << "| " << stockList << "\n";
+			openFile << id << "|" << balance << "|" << stockList << "\n";
 			openFile.close();
 			exit(0);
 		}
@@ -228,23 +229,28 @@ vector<Stock> initialiseStocks() {
 	return new_market;
 }
 
-vector<string> getAllAccounts(ifstream& file, vector<string>& accList) {
+void getAllAccountDetails(ifstream& file, vector<string>& accList, vector<vector<string>>& detailsList) {
 	file.clear();
 	file.seekg(0, ios::beg);
 	string line;
-	while (getline(file, line)){
+	while (getline(file, line)) {
 		if (line.empty()) continue;
 		stringstream ss(line);
-		string account;
-		if (getline(ss, account, '|')) {
-			if (!account.empty()) continue;
-			accList.emplace_back(account);
+		string info;
+		vector<string> accountDetails;
+		while (getline(ss, info, '|')) {
+			accountDetails.push_back(info);
 		}
+		if (accountDetails.size() != 3) {
+			cerr << "Incorrectly formatted line, skipping to next line... \n";
+			continue;
+		}
+		detailsList.emplace_back(accountDetails);
+		accList.push_back(accountDetails[0]);
 	}
-	return accList;
 }
 
-void loadAccounts(){
+void loadAccounts(Port& account, vector<Stock>& market){
 	bool validUsername = false;
 	ifstream portFile("portfolios.txt");
 	string line;
@@ -253,22 +259,45 @@ void loadAccounts(){
 		cout << line << endl;
 	}
 	string acc = "";
+	vector<vector<string>> accDetailsList;
 	do {
 		cout << "Enter the username of the account you wish to load: \n";
 		cin >> acc;
-		vector<string> accountList;
-		getAllAccounts(portFile, accountList);
-		if (find(accountList.begin(), accountList.end(), acc) != accountList.end()) {
+		vector<string> accList;
+		getAllAccountDetails(portFile, accList, accDetailsList);
+		if (find(accList.begin(), accList.end(), acc) != accList.end()) {
 			validUsername = true;
+			cout << "Account Found... \n";
 		} else {
 			cout << "This username does not exist yet, please try again. \n";
 		}
 	} while (!validUsername);
-	
+	for (auto accDetails : accDetailsList) {
+		if (acc == accDetails[0]) {
+			vector<PortItem> stocks;
+			stringstream ss(accDetails[2]);
+			vector<vector<string>> stockInfo;
+			string part;
+			while (getline(ss, part, ',')) {
+				stringstream stockSS(part);
+				string stockID, stockQuant;
+				getline(stockSS, stockID, ':');
+				getline(stockSS ,stockQuant, ':');
+				
+				stockInfo.push_back({stockID, stockQuant});
+			}
+			for (auto& stock : market) {
+				for (auto shares : stockInfo) {
+					if (shares[0] == stock.getID()) {
+						stocks.push_back(PortItem(&stock, stoi(shares[1])));
+					}
+				}
 
+			}
+			account = Port (accDetails[0], stod(accDetails[1]), stocks);
 
-
-
+		}
+	}
 }
 
 void checkExit() {
@@ -287,13 +316,15 @@ bool emptyFile(ifstream& iFile) {
 
 int main() {
 	cout << fixed << setprecision(2);
-	Port acc("", 0.0, vector<PortItem> {});
+	vector<Stock> market;
+	market = initialiseStocks();
+	Port acc;
 
 	ifstream portFile("portfolio.txt");
 	portFile.seekg(0, ios::beg);
 	if (emptyFile(portFile) == true) {
 		cout << "Creating new account... \n \n";
-		acc =  Port("", 10000000.0, vector<PortItem>{});
+		acc =  Port("", 10000.0, vector<PortItem>{});
 	} else {
 		int newOrLoad;
 		bool accLoaded = false;
@@ -306,13 +337,13 @@ int main() {
 			switch (newOrLoad) {
 				case 1: {
 					cout << "Creating new account... \n \n";
-					acc = Port ("", 10000000.0, vector<PortItem>{});
+					acc = Port ("", 10000.0, vector<PortItem>{});
 					accLoaded = true;
 					break;
 				}
 
 				case 2:
-					loadAccounts();
+					loadAccounts(acc, market);
 					accLoaded = true;
 					break;
 			}
@@ -320,8 +351,6 @@ int main() {
 	}
 	portFile.close();
 
-	vector<Stock> market;
-	market = initialiseStocks();
 	int choice;
 	do {
 		cout << " //Welcome to Stock Sim!\\ \n";
