@@ -320,7 +320,7 @@ int main() {
 	market = initialiseStocks();
 	Port acc;
 
-	ifstream portFile("portfolio.txt");
+	ifstream portFile("portfolios.txt");
 	portFile.seekg(0, ios::beg);
 	if (emptyFile(portFile) == true) {
 		cout << "Creating new account... \n \n";
