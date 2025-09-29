@@ -7,6 +7,7 @@
 #include <string> 
 #include <vector>
 #include <cstdlib>
+#include <typeinfo>
 
 using namespace std;
 
@@ -49,22 +50,22 @@ class Port {
 		double balance;
 		vector <PortItem> holdings;
 
-		void checkExit() {
-			string ex;
-			do {
-				cout << "\nEnter 'E' to exit to Main Menu \n";
-				cin >> ex;
-				transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
-			} while (ex != "E");
-			cout << "\n";
-		}
-
 		double generateFlux() {
 			random_device rd;
 			mt19937 gen(rd());
 			uniform_real_distribution<> dist(-0.05, 0.05);
 			double rnum = dist(gen);
 			return rnum;
+		}
+
+		bool validID(vector<Stock>& market, string& inputID) {
+			for (auto& stock : market) {
+				if (stock.getID() == inputID) {
+					return true;
+				}
+			}
+			cerr << "Error: Invalid stock ID \n";
+			return false;
 		}
 
 	public:
@@ -76,7 +77,7 @@ class Port {
 			for (auto& stock : market) {
 				cout << stock.getID() << " | " << stock.getName() << " | " << stock.getPrice() << "\n";
 			}
-			checkExit();
+			cout << "\n";
 			return 0;
 		}
 		
@@ -84,24 +85,32 @@ class Port {
 			string id;
 			int quantity;
 			cout << "Enter the ID of the stock you wish to purchase: \n";
-			 cin >> id;
+			cin >> id;
+			if (!(validID(market, id))) {
+				return 1;
+			}
 			cout << "Enter the quantity of stock you wish to purchase: \n";
 			cin >> quantity;
+
+			if (cin.fail()) {
+				cerr << "Invalid input \n";
+				cin.clear(); 
+    			cin.ignore(1000, '\n');
+				return 1;
+			}
 			for (auto& stock : market) {
 				if (stock.getID() == id) { 
 					double new_balance = balance - (stock.getPrice() * quantity);
 					if (new_balance < 0) {
 						cerr << "Insufficient funds \n";
-					} else {
-						balance = new_balance;
-						holdings.emplace_back(&stock, quantity);
-						cout << "Stock Bought \n";
-						cout << "New Balance: " << balance << "\n";
+						return 1;
 					}
-					return 0;
-				}
+					balance = new_balance;
+					holdings.emplace_back(&stock, quantity);
+					cout << "Stock Bought \n";
+					cout << "New Balance: " << balance << "\n";
+					}
 			}
-			cerr << "Error: Invalid stock ID";
 			return 0;
 		}
 
@@ -110,8 +119,17 @@ class Port {
 			int quantity;
 			cout << "Enter the ID of stock you wish to sell \n";
 			cin >> id;
+			if (!(validID(market, id))) {
+				return 1;
+			}
 			cout << "Enter the quantity of stock you wish to sell \n";
 			cin >> quantity;
+			if (cin.fail()) {
+				cerr << "Invalid input \n";
+				cin.clear(); 
+    			cin.ignore(1000, '\n');
+				return 1;
+			}
 
 			for (auto& stock : holdings) {
 				if ((stock.stockItem)->getID() == id) {
@@ -149,6 +167,26 @@ class Port {
 			cout << "Total Portfolio Value: " << total << "\n";
 		}
 
+		void removeLine(const string& file, const string& accID) {
+			ifstream currFile(file);
+			ofstream tempFile("temp.txt");
+			string line;
+			while (getline(currFile, line)) {
+				stringstream ss(line);
+				string lineInfo;
+				if (getline(ss, lineInfo, '|')) {
+					if (accID != lineInfo) {
+						tempFile << line << endl;
+					}
+				}
+			}
+			tempFile.close();
+			currFile.close();
+
+			remove(file.c_str());
+			rename("temp.txt", file.c_str());
+		}
+
 		int saveExit() {
 			bool uniqueID = true;
 			string newID = "";
@@ -161,28 +199,38 @@ class Port {
 				uniqueID = true;
 				openFile.clear();
 				openFile.seekg(0, ios::beg);
-
-				cout << "Create an account ID \n";
-				cin >> newID;
-				string line;
-				while (getline(openFile, line)) {
-					if (line.empty()) continue;
-					stringstream ss(line);
-					string accDetails;
-					vector<string> acc;
-					while (getline(ss, accDetails, '|')) {
-						acc.push_back(accDetails);
-					}
-					if (acc[0] == newID) {
-						cerr << "Error: ID already exists \n";
-						uniqueID = false;
-						break;
+				if (id == "") {
+					cout << "Create an account ID \n";
+					cin >> newID;
+				} else {
+					newID = id;
+				}
+				if (id == "") {
+					string line;
+					while (getline(openFile, line)) {
+						if (line.empty()) continue;
+						stringstream ss(line);
+						string accDetails;
+						vector<string> acc;
+						while (getline(ss, accDetails, '|')) {
+							acc.push_back(accDetails);
+						}
+						if (acc[0] == newID) {
+							cerr << "Error: ID already exists \n";
+							uniqueID = false;
+							break;
+						}
 					}
 				}
 			} while (uniqueID != true);
+			if (id != "") {
+				openFile.close();
+				removeLine("portfolios.txt", id);
+				openFile.open("portfolios.txt", ios::in | ios::out | ios::app);
+			}
 			openFile.clear();
 			openFile.seekp(0, ios::end);
-			cout << "Saving & Exiting...";
+			cout << "Saving & Exiting... \n";
 			id = newID;
 			string stockList = "";
 			for (const auto& stock : holdings) {
@@ -300,16 +348,6 @@ void loadAccounts(Port& account, vector<Stock>& market){
 	}
 }
 
-void checkExit() {
-	string ex;
-	do {
-	cout << "\nEnter 'E' to exit to Main Menu \n";
-	cin >> ex;
-	transform(ex.begin(), ex.end(), ex.begin(), ::toupper);
-	} while (ex != "E");
-	cout << "\n";
-}
-
 bool emptyFile(ifstream& iFile) {
 	return iFile.peek() == fstream::traits_type::eof();
 }
@@ -331,7 +369,7 @@ int main() {
 		do {
 			cout << "Select an Option: \n";
 			cout << "1. Create New Account \n";
-			cout << "2. Load An Existing Account";
+			cout << "2. Load An Existing Account \n";
 			cin >> newOrLoad;
 
 			switch (newOrLoad) {
