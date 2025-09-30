@@ -68,6 +68,26 @@ class Port {
 			return false;
 		}
 
+		void removeLine(const string& file, const string& accID) {
+			ifstream currFile(file);
+			ofstream tempFile("temp.txt");
+			string line;
+			while (getline(currFile, line)) {
+				stringstream ss(line);
+				string lineInfo;
+				if (getline(ss, lineInfo, '|')) {
+					if (accID != lineInfo) {
+						tempFile << line << endl;
+					}
+				}
+			}
+			tempFile.close();
+			currFile.close();
+
+			remove(file.c_str());
+			rename("temp.txt", file.c_str());
+		}
+
 	public:
 		Port() : id(""), balance(0.0), holdings({}) {}
 		Port(string id, double bal, vector <PortItem> hold)
@@ -165,26 +185,6 @@ class Port {
 				total += (stock.stockItem)->getPrice() * stock.quantity;
 			}
 			cout << "Total Portfolio Value: " << total << "\n";
-		}
-
-		void removeLine(const string& file, const string& accID) {
-			ifstream currFile(file);
-			ofstream tempFile("temp.txt");
-			string line;
-			while (getline(currFile, line)) {
-				stringstream ss(line);
-				string lineInfo;
-				if (getline(ss, lineInfo, '|')) {
-					if (accID != lineInfo) {
-						tempFile << line << endl;
-					}
-				}
-			}
-			tempFile.close();
-			currFile.close();
-
-			remove(file.c_str());
-			rename("temp.txt", file.c_str());
 		}
 
 		int saveExit() {
